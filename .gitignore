@@ -1,61 +1,161 @@
-# Terraform
+# ==============================================================================
+# Terraform & OpenTofu
+# ==============================================================================
+# Local directory for providers, plugins, and modules
 .terraform/
+.terraform.d/
+
+# State files & locks
 *.tfstate
+*.tfstate.*
 *.tfstate.backup
+
+# Plan and crash files
 *.tfplan
+*.plan
+*.out
 plan.out
 crash.log
+crash.*.log
+
+# Override files (local developer overrides)
 override.tf
 override.tf.json
 *_override.tf
 *_override.tf.json
-# Do NOT ignore .terraform.lock.hcl — it should be committed for reproducible builds
 
-# Sensitive files — NEVER commit
+# TFLint & Terragrunt cache
+.tflint.d/
+.terragrunt-cache/
+
+# NOTE: Do NOT ignore .terraform.lock.hcl — it is committed for reproducible builds
+!.terraform.lock.hcl
+
+# ==============================================================================
+# Sensitive Files & Credentials (NEVER COMMIT)
+# ==============================================================================
 *.tfvars
+*.tfvars.json
 !*.tfvars.example
+!*.tfvars.json.example
 .env
 .env.*
+!.env.example
+
+# Certificates, Keys & Secrets
 *.pem
 *.key
 *.p12
 *.pfx
+*.pkcs12
+*.crt
+*.cer
+*.der
+*.secret
+
+# AWS & Cloud credentials
 credentials
 credentials.*
+aws-credentials
+aws-credentials.*
+.aws/
+
+# Kubernetes kubeconfig
 kubeconfig
 kubeconfig.*
-aws-credentials
+.kube/
 
-# IDE
+# SSH keys
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+
+# ==============================================================================
+# Helm & Kubernetes
+# ==============================================================================
+# Helm packaged archive charts
+*.tgz
+.helm/
+.helmcache/
+
+# ==============================================================================
+# Security Scans & Test Reports (Checkov, Trivy, etc.)
+# ==============================================================================
+.checkov/
+*checkov*.json
+*trivy*.json
+*scan-report*
+results_*.json
+*.coverage
+coverage/
+.pytest_cache/
+
+# ==============================================================================
+# IDEs & Text Editors
+# ==============================================================================
 .idea/
 .vscode/
+.cursor/
+.antigravity/
+.antigravity-ide/
 *.swp
 *.swo
+*.sw[a-p]
 *~
 .project
 .classpath
 .settings/
+*.sublime-project
+*.sublime-workspace
 
-# OS
+# ==============================================================================
+# Operating System
+# ==============================================================================
+# macOS
 .DS_Store
-Thumbs.db
-Desktop.ini
+.DS_Store?
 ._*
+.Spotlight-V100
+.Trashes
 
-# Python (Checkov, scripts)
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# ==============================================================================
+# Python (Linters, Checkov, Operational Scripts)
+# ==============================================================================
 __pycache__/
-*.pyc
-*.pyo
+*.py[cod]
+*$py.class
 .venv/
 venv/
-.env/
+ENV/
+env/
 
-# Node (Context7, tooling)
+# ==============================================================================
+# Node.js & Tooling
+# ==============================================================================
 node_modules/
 package-lock.json
 
-# Temporary
+# ==============================================================================
+# Temporary, Log & Backup Files
+# ==============================================================================
 *.tmp
+*.temp
 *.bak
+*.backup
+*.old
+*.orig
+*.rej
 *.log
+logs/
 tmp/
+temp/

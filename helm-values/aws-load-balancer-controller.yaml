@@ -1,0 +1,15 @@
+# AWS Load Balancer Controller Helm Values
+# Pinned chart: aws-load-balancer-controller (eks.amazonaws.com/charts)
+# Story: PETPLAT-29
+
+clusterName: petclinic-dev
+region: us-east-1
+vpcId: ""
+
+serviceAccount:
+  create: true
+  name: aws-load-balancer-controller
+  annotations:
+    eks.amazonaws.com/role-arn: ""
+
+ingressClass: alb

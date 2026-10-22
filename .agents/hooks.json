@@ -1,0 +1,20 @@
+{
+  "safety-block-destroy": {
+    "enabled": false
+  },
+  "safety-block-dangerous-rm": {
+    "enabled": false
+  },
+  "safety-warn-apply-without-plan": {
+    "enabled": false
+  },
+  "safety-block-secret-commit": {
+    "enabled": false
+  },
+  "safety-block-mcp-destroy": {
+    "enabled": false
+  },
+  "safety-suggest-validate": {
+    "enabled": false
+  }
+}

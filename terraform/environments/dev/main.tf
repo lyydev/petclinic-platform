@@ -1,0 +1,75 @@
+data "aws_availability_zones" "available" {
+  state = "available"
+}
+
+module "vpc" {
+  source              = "../../modules/vpc"
+  project             = var.project
+  environment         = var.environment
+  vpc_cidr            = var.vpc_cidr
+  public_subnet_cidrs = var.public_subnet_cidrs
+  availability_zones  = slice(data.aws_availability_zones.available.names, 0, 2)
+}
+
+module "eks" {
+  source = "../../modules/eks"
+
+  project             = var.project
+  environment         = var.environment
+  cluster_version     = var.cluster_version
+  subnet_ids          = module.vpc.public_subnet_ids
+  cluster_sg_id       = module.vpc.eks_cluster_sg_id
+  node_sg_id          = module.vpc.eks_node_sg_id
+  node_instance_types = var.node_instance_types
+  node_ami_type       = var.node_ami_type
+  node_min_size       = var.node_min_size
+  node_max_size       = var.node_max_size
+  node_desired_size   = var.node_desired_size
+  node_disk_size      = var.node_disk_size
+}
+
+module "ecr" {
+  source = "../../modules/ecr"
+
+  project     = var.project
+  environment = var.environment
+  service_names = [
+    "config-server",
+    "discovery-server",
+    "api-gateway",
+    "customers-service",
+    "visits-service",
+    "vets-service",
+    "genai-service",
+    "admin-server"
+  ]
+}
+
+module "rds" {
+  source = "../../modules/rds"
+
+  project                 = var.project
+  environment             = var.environment
+  subnet_ids              = module.vpc.public_subnet_ids
+  security_group_id       = module.vpc.rds_sg_id
+  instance_class          = "db.t4g.micro"
+  allocated_storage       = 20
+  max_allocated_storage   = 20
+  multi_az                = false
+  backup_retention_period = 7
+  skip_final_snapshot     = true
+  deletion_protection     = false
+  apply_immediately       = true
+  recovery_window_in_days = 0
+}
+
+module "dns" {
+  source = "../../modules/dns"
+
+  project      = var.project
+  environment  = var.environment
+  domain_name  = var.domain_name
+  record_name  = "petclinic-${var.environment}.${var.domain_name}"
+  alb_dns_name = var.alb_dns_name
+  alb_zone_id  = var.alb_zone_id
+}
