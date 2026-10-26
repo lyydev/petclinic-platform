@@ -127,3 +127,24 @@ output "alb_record_fqdn" {
   description = "FQDN of the Route 53 ALB alias record (if created)"
   value       = module.dns.alb_record_fqdn
 }
+
+output "eso_role_arn" {
+  description = "External Secrets Operator IAM role ARN"
+  value       = module.eks.eso_role_arn
+}
+
+output "eso_role_name" {
+  description = "External Secrets Operator IAM role name"
+  value       = module.eks.eso_role_name
+}
+
+output "openai_secret_arn" {
+  description = "Secrets Manager ARN for OpenAI API key"
+  value       = module.secrets.openai_secret_arn
+}
+
+output "openai_secret_name" {
+  description = "Secrets Manager secret name for OpenAI API key"
+  value       = module.secrets.openai_secret_name
+}
+

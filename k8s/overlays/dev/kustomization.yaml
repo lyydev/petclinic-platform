@@ -4,13 +4,83 @@ kind: Kustomization
 namespace: petclinic-dev
 
 resources:
-  - ../../base/ingress
+  - namespace.yaml
+  - ../../base
+  - resource-quota.yaml
+
+images:
+  - name: 037547369073.dkr.ecr.us-east-1.amazonaws.com/petclinic/config-server
+    newName: 037547369073.dkr.ecr.us-east-1.amazonaws.com/petclinic-dev/config-server
+    newTag: 635f8be
+  - name: 037547369073.dkr.ecr.us-east-1.amazonaws.com/petclinic/discovery-server
+    newName: 037547369073.dkr.ecr.us-east-1.amazonaws.com/petclinic-dev/discovery-server
+    newTag: 635f8be
+  - name: 037547369073.dkr.ecr.us-east-1.amazonaws.com/petclinic/customers-service
+    newName: 037547369073.dkr.ecr.us-east-1.amazonaws.com/petclinic-dev/customers-service
+    newTag: 635f8be
+  - name: 037547369073.dkr.ecr.us-east-1.amazonaws.com/petclinic/visits-service
+    newName: 037547369073.dkr.ecr.us-east-1.amazonaws.com/petclinic-dev/visits-service
+    newTag: 635f8be
+  - name: 037547369073.dkr.ecr.us-east-1.amazonaws.com/petclinic/vets-service
+    newName: 037547369073.dkr.ecr.us-east-1.amazonaws.com/petclinic-dev/vets-service
+    newTag: 635f8be
+  - name: 037547369073.dkr.ecr.us-east-1.amazonaws.com/petclinic/genai-service
+    newName: 037547369073.dkr.ecr.us-east-1.amazonaws.com/petclinic-dev/genai-service
+    newTag: 635f8be
+  - name: 037547369073.dkr.ecr.us-east-1.amazonaws.com/petclinic/api-gateway
+    newName: 037547369073.dkr.ecr.us-east-1.amazonaws.com/petclinic-dev/api-gateway
+    newTag: 635f8be
+  - name: 037547369073.dkr.ecr.us-east-1.amazonaws.com/petclinic/admin-server
+    newName: 037547369073.dkr.ecr.us-east-1.amazonaws.com/petclinic-dev/admin-server
+    newTag: 635f8be
 
 patches:
+  - path: replicas-patch.yaml
+  - target:
+      kind: ExternalSecret
+      name: rds-credentials
+    patch: |-
+      - op: replace
+        path: /spec/data/0/remoteRef/key
+        value: petclinic/dev/rds-credentials
+      - op: replace
+        path: /spec/data/1/remoteRef/key
+        value: petclinic/dev/rds-credentials
+  - target:
+      kind: ExternalSecret
+      name: openai-api-key
+    patch: |-
+      - op: replace
+        path: /spec/data/0/remoteRef/key
+        value: petclinic/dev/openai-api-key
   - target:
       kind: Ingress
       name: api-gateway-ingress
     patch: |-
-      - op: add
+      - op: replace
         path: /spec/rules/0/host
         value: petclinic-dev.k8s.lyaistorm.win
+      - op: replace
+        path: /metadata/annotations/alb.ingress.kubernetes.io~1group.name
+        value: petclinic-dev
+  - target:
+      kind: ConfigMap
+      name: customers-service-config
+    patch: |-
+      - op: replace
+        path: /data/SPRING_DATASOURCE_URL
+        value: jdbc:mysql://petclinic-dev-mysql.cwvqe2yc62yf.us-east-1.rds.amazonaws.com:3306/petclinic
+  - target:
+      kind: ConfigMap
+      name: visits-service-config
+    patch: |-
+      - op: replace
+        path: /data/SPRING_DATASOURCE_URL
+        value: jdbc:mysql://petclinic-dev-mysql.cwvqe2yc62yf.us-east-1.rds.amazonaws.com:3306/petclinic
+  - target:
+      kind: ConfigMap
+      name: vets-service-config
+    patch: |-
+      - op: replace
+        path: /data/SPRING_DATASOURCE_URL
+        value: jdbc:mysql://petclinic-dev-mysql.cwvqe2yc62yf.us-east-1.rds.amazonaws.com:3306/petclinic

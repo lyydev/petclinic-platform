@@ -63,3 +63,18 @@ output "lb_controller_policy_arn" {
   description = "AWS Load Balancer Controller IAM policy ARN"
   value       = aws_iam_policy.lb_controller.arn
 }
+
+output "eso_role_arn" {
+  description = "IAM role ARN for External Secrets Operator"
+  value       = aws_iam_role.eso.arn
+}
+
+output "eso_role_name" {
+  description = "IAM role name for External Secrets Operator"
+  value       = aws_iam_role.eso.name
+}
+
+output "eso_policy_arn" {
+  description = "IAM policy ARN for External Secrets Operator"
+  value       = aws_iam_policy.eso.arn
+}

@@ -87,3 +87,10 @@ variable "alb_zone_id" {
   type        = string
   default     = "Z35SXDOTRQ7X7K"
 }
+
+variable "openai_api_key" {
+  description = "OpenAI API key value for GenAI service (never hardcode)"
+  type        = string
+  sensitive   = true
+  default     = "placeholder-openai-api-key"
+}

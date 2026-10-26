@@ -69,3 +69,10 @@ variable "node_disk_size" {
   type        = number
   default     = 20
 }
+
+variable "openai_api_key" {
+  description = "OpenAI API key value for GenAI service (never hardcode)"
+  type        = string
+  sensitive   = true
+  default     = "placeholder-openai-api-key"
+}

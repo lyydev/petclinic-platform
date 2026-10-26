@@ -9,6 +9,7 @@ metadata:
     app.kubernetes.io/component: gateway
   annotations:
     kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/group.name: petclinic
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:us-east-1:037547369073:certificate/e8450c42-a6cf-41b4-932a-2917671021e2"
@@ -20,7 +21,8 @@ metadata:
 spec:
   ingressClassName: alb
   rules:
-    - http:
+    - host: petclinic.k8s.lyaistorm.win
+      http:
         paths:
           - path: /
             pathType: Prefix

@@ -73,3 +73,13 @@ module "dns" {
   alb_dns_name = var.alb_dns_name
   alb_zone_id  = var.alb_zone_id
 }
+
+module "secrets" {
+  source = "../../modules/secrets"
+
+  project                 = var.project
+  environment             = var.environment
+  openai_api_key          = var.openai_api_key
+  recovery_window_in_days = 0
+}
+

@@ -1,0 +1,326 @@
+Antigravity cli:
+1.Fix ipv6 network issue
+sudo su -
+echo "142.250.190.10 daily-cloudcode-pa.googleapis.com" | sudo tee -a /etc/hosts
+
+lauch agy with less questions:
+agy --dangerously-skip-permissions
+
+
+Install MCP:
+
+ aws-knowlege-mcp
+agy mcp add aws-knowledge-mcp https://knowledge-mcp.global.api.aws
+
+Go to the official HashiCorp release archive:https://releases.hashicorp.com/terraform-mcp-server/1.3.0/   
+Download the Windows 64-bit archive:terraform-mcp-server_1.3.0_windows_amd64.zip
+copy to C:\Tools
+Point your MCP config (.gemini/mcp_config.json or .agents/mcp_config.json) directly to the extracted binary:
+
+{
+  "mcpServers": {
+    "terraform": {
+      "command": "C:/Tools/terraform-mcp-server.exe"
+    }
+  }
+}
+
+======== Prompt for create terraform backend ===============
+Start the project context:
+Read Epic E-1 Foundation and Remote State from docs/jira-baclog.md. Implement all 5 stories - PetclinicPlatfrom1 
+through PetclinicPlatform5. For each story, read the acceptance criteria and the Technical Spec references in 
+docs/technical-sec.md. Start with PetclinicPlatform1 directory structure, then PentclinicPlatform2 bootstrap script. then Petclinic Platform3 and PetclinicPlatform4 backends, then PetclinicPlatform5 providers and versions.
+
+====
+
+Read Epic E-1 Foundation and Remote State from docs/jira-baclog.md. Implement first storie - PetclinicPlatfrom1. 
+For  story, read the acceptance criteria and the Technical Spec references in 
+docs/technical-sec.md. Implement PetclinicPlatform1 directory structure.
+
+Read Epic E-1 Foundation and Remote State from docs/jira-baclog.md. Implement the rest 4 stories - PetclinicPlatfrom2 
+through PetclinicPlatform5. For each story, read the acceptance criteria and the Technical Spec references in 
+docs/technical-sec.md. continue with PentclinicPlatform2 bootstrap script. then Petclinic Platform3 and PetclinicPlatform4 backends, then PetclinicPlatform5 providers and versions.
+
+===section 3 VPC === Prompt:
+Read following stories from docs/jira-baclog.md:
+- PETPLAT-6: Create VPC module — VPC, subnets, IGW
+- PETPLAT-8: Create baseline security groups
+- PETPLAT-9: Wire VPC module into dev environment
+- PETPLAT-10: Wire VPC module into prod environment
+
+Read technical spec at docs/technical-sec.md, specially:
+- VPC Network Design section
+- Security Groups section
+- Terraform modules section
+
+Build everthing these stories require. Follow acceptance criteria exactly.
+After you done. Run terraform validate on both dev and prod.
+
+The use the terraform-reviewer agent to review the module and the security-auditor agent for security and best practise.
+
+Fix any issues the reviewers find and validate again.
+==== 
+(  #command to get stories title. from git bash
+   cd /c/Project/AIdevops/petclinic-platform/docs
+   grep "### PETPLAT-" jira-backlog.md|sed '1,$ s/###/ - /g'
+ )
+
+===Section 4: build EKS cluster Prompt:
+Read the following stories from docs/jira-baclog.md:
+ -  PETPLAT-12: Create EKS module — cluster and IAM roles
+ -  PETPLAT-13: Add managed node group to EKS module
+ -  PETPLAT-14: Create kubectl access configuration
+ -  PETPLAT-15: Wire EKS module into dev environment
+ -  PETPLAT-16: Deploy and verify dev EKS cluster
+ -  PETPLAT-17: Wire EKS module into prod environment
+
+Read the technical spec at docs/technical-spec.md, specifically:
+ - EKS Cluster section
+ - IRSA Roles section
+
+Build everything these stories require. Follow acceptance criteria exactly.
+After you done. Run terraform validate on both dev and prod.
+
+The use the terraform-reviewer agent to review the module and the security-auditor agent for security and best practise.
+
+Fix any issues the reviewers find and validate again.
+
+========================
+Section 5 ECR Prompt:
+Read the following stories from docs/jira-baclog.md:
+ -  PETPLAT-18: Create ECR module
+ -  PETPLAT-19: Add lifecycle policy and tag immutability configuration
+ -  PETPLAT-20: Wire ECR module into dev environment and deploy
+ -  PETPLAT-21: Create ECR login helper script
+ -  PETPLAT-85: Build and push Docker images to ECR (initial)
+
+Read the technical spec at docs/technical-spec.md, specifically:
+ - ECR Container Registry section
+ - Docker Build section
+ - Terraform Modules section ( ECR module )
+Build everything these stories require. Follow acceptance criteria exactly.
+After you done. Run terraform validate on both dev and prod.
+
+The build-push script must docker buildx with --platform linux/arm64 for Gravition nodes. Do not rely on Maven's buildDocker profile for image creation - use Maven to build the Jars, Then docker buildx to build ARM64 images.
+
+The use the terraform-reviewer agent to review the module and the security-auditor agent for security and best practise.
+
+Fix any issues the reviewers find and validate again.
+
+============================
+Secion 6 RDS Prompt
+
+Read the following stories from docs/jira-baclog.md:
+
+ -  PETPLAT-22: Create RDS module
+ -  PETPLAT-23: Create database credentials in Secrets Manager
+ -  PETPLAT-24: Create database initialization strategy
+ -  PETPLAT-25: Wire RDS module into dev environment
+ -  PETPLAT-26: Deploy and verify dev RDS
+ -  PETPLAT-27: Wire RDS module into prod environment
+
+Read the technical spec at docs/technical-spec.md, specifically:
+
+- RDS Database Section
+- Secrets Management Section
+- Security Groups Section ( RDS Security group )
+- Terraform Modules Section ( RDS Module )
+
+Build everything these stories require. Follow acceptance criteria exactly.
+After you done. Run terraform validate on both dev and prod.
+
+Then use the terraform-reviewer agent to review the module and the security-auditor agent for security and best practise.
+
+Fix any issues the reviewers find and validate again.
+
+========
+Secotion 7 DNS ingress
+
+Read the following stories from docs/jira-baclog.md:
+ -  PETPLAT-28: Create DNS module — Route 53 hosted zone
+ -  PETPLAT-29: Install AWS Load Balancer Controller on EKS
+ -  PETPLAT-30: Create Ingress manifest for API Gateway
+ -  PETPLAT-31: Create DNS record pointing to ALB
+ -  PETPLAT-32: Wire DNS module into dev environment
+
+Read the technical spec at docs/technical-spec.md, specifically:
+
+ - DNS and ingress Section
+ - Security Group Section ( ALB Security Group )
+ - IRSA Role Section ( LB Controller Role )
+ - Terraform Modules Section ( DNS Module )
+
+Build everything these stories require. Follow acceptance criteria exactly.
+This section generate both Terraform resource and Kubernetes resource - Make sure you generate both
+
+The AWS Load Balancer Controller should be installed via Helm Chart ( aws-load-balancer-cotroller from eks.amazonaws.com/charts). Generate ashell script at scripts/install-lb-controller.sh that handles the CRDs, Helm repo add, and helm install with the correct service account and IRSA role ARN. Make sure the script is executable.
+
+After you done. Run terraform validate on both dev and prod.
+
+Then use the terraform-reviewer agent to review the module for security and best practise.
+Then user the k8s-validator agent to validate the Kubernetes Manifests against project standards.
+
+Fix any issues the reviewers find and validate again.
+
+=======================================
+Section 8: Secret Manager
+
+Read the following stories from docs/jira-baclog.md:
+
+ -  PETPLAT-33: Create Secrets Manager Terraform resources (non-RDS secrets)
+ -  PETPLAT-34: Install External Secrets Operator on EKS
+ -  PETPLAT-35: Create ExternalSecret for RDS credentials
+ -  PETPLAT-36: Create ExternalSecret for OpenAI API key
+ -  PETPLAT-37: Create IRSA role for External Secrets Operator
+
+Read the technical spec at docs/technical-spec.md, specifically:
+ - Secret Management Section
+ - IRSA Role Section ( ESO Role )
+ - Terraform Module Section ( Secret Module )
+
+Build everything these stories require. Follow acceptance criteria exactly.
+Dont create optional secrets resource.
+
+The OpenAI API key value should be sensitive Terraform variable - never hardcode
+
+After you done. Run terraform validate on both dev and prod.
+
+Then use the terraform-reviewer agent to review the module for security and best practise.
+Then user the k8s-validator agent to validate the Kubernetes Manifests against project standards.
+
+Fix any issues the reviewers find and validate again.
+
+=============
+Section 9 k8s manifest
+
+Read the following stories from docs/jira-baclog.md:
+Base manifests ( Epic E-8 )
+ -  PETPLAT-38: Create K8s namespaces manifest
+ -  PETPLAT-39: Create Config Server K8s manifests
+ -  PETPLAT-40: Create Discovery Server K8s manifests
+ -  PETPLAT-41: Create domain services K8s manifests (customers, visits, vets)
+ -  PETPLAT-42: Create GenAI Service K8s manifests
+ -  PETPLAT-43: Create API Gateway K8s manifests
+ -  PETPLAT-44: Create Admin Server K8s manifests
+
+Environment overlyas (Epic E-9 )
+ -  PETPLAT-45: Create dev overlay patches
+ -  PETPLAT-46: Create prod overlay patches
+ -  PETPLAT-47: Add Horizontal Pod Autoscaler for prod
+
+Read the technical spec at docs/technical-spec.md, specifically:
+ - Kubernetes Manifests Section ( namespaces, labels, probes, resources, env vars, init containers, security context )
+ - Application Service section ( ports, profiles, startup order )
+ - Kubernetes overly section ( dev and prod settings )
+
+Build everything these stories require. Follow acceptance criteria exactly.
+
+Use init containers with busybox:1.36 to enforce startup order - wget loops pulling health endpoints
+
+All deployments must include a startupProbe, readinessProbe, and livenessProbe on /actuator/health endpoints. The startupProbe allows Spring Boot time to initialize before liveness kills the pod.
+
+All deployments must include the full secruityContext from the spec ( runAsNonRoot, runAsUser, fsGroup, seccompProfile RuntimeDefault, drop ALL capabilities ).
+
+All deployments must include imagePullPolicy: Always.
+
+After you done. Run kubectl apply --dry-run=client on all manifest to validate
+
+Then user the k8s-validator agent to validate the Kubernetes Manifests against project standards.
+
+Fix any issues the reviewers find and validate again.
+
+
+
+
+==========
+
+git bash tst:
+
+aws sts get-caller-identity \
+
+Check kubectl client version:
+kubectl version --client
+
+configu kubectl on client
+aws eks update-kubeconfig --name petclinic-dev --region us-east-1 
+
+
+#create RDS without EKS
+terraform plan -target="module.rds" -out="plan.out"
+  cd terraform/environments/dev
+    terraform apply "plan.out"
+=============================
+Destroy cost part:
+
+# destroy EKS only:
+ terraform destroy -target=module.eks
+#desctroy RDS
+terraform destroy -target=module.eks
+
+# destroy  alb ingress:
+ kubectl delete -k k8s/base/ingress/ -n petclinic-dev
+
+
+# disable 2 variables in dev/terraform.tfvars
+ #alb_dns_name = "k8s-petclini-apigatew-687e5c23e0-1936415557.us-east-1.elb.amazonaws.com"
+ #alb_zone_id = "Z35SXDOTRQ7X7K"
+
+terraform -chdir=terraform/environments/dev output acm_certificate_arn
+ terraform -chdir=terraform/environments/dev output alb_sg_id
+
+ kubectl apply -k k8s/base/ingress/ -n petclinic-dev
+
+Get ALB hostname
+$ kubectl  get ingress api-gateway-ingress  -n petclinic-dev -o jsonpath={.status.loadBalancer.ingress[0].hostname}
+k8s-petclini-apigatew-687e5c23e0-1936415557.us-east-1.elb.amazonaws.com
+
+hosted zone: Z35SXDOTRQ7X7K
+
+=================================
+Rebuild cost resource:
+terraform apply -target=module.eks -target=module.rds
+
+( course 46.     12:40
+./install-lb-controller.sh dev
+# get alb_sg_id
+terraform -chdir=terraform/environments/dev output alb_sg_id
+
+# get certificate_arn
+$ terraform -chdir=terraform/environments/dev output certificate_arn
+"arn:aws:acm:us-east-1:037547369073:certificate/e8450c42-a6cf-41b4-932a-2917671021e2"
+
+#update k8s/ingress/ingress.yaml make sure added to annotations. 
+    alb_sg_id   certificate_arn  which get from above update. ( if not desctory before, the values are same )
+
+ kubectl create namespace petclinic-dev
+ kubectl apply -k k8s/base/ingress/ -n petclinic-dev
+# wait until alb active
+# Get ALB DNS name
+$ kubectl  get ingress api-gateway-ingress  -n petclinic-dev -o jsonpath={.status.loadBalancer.ingress[0].hostname}
+k8s-petclini-apigatew-687e5c23e0-1962952570.us-east-1.elb.amazonaws.com
+# Get ALB "Host Zone" value from console
+Z35SXDOTRQ7X7K
+# update above 2 value to dev/terraform.tfvars
+
+
+=============================
+# secret section:
+#ADD ESO repo
+ helm repo add external-secrets https://charts.external-secrets.io
+ helm repo update
+
+# install ESO CRD
+.script/install-external-secrets.sh dev
+
+ export ENVIRONMENT=dev
+cd ./k8s/base/external-secrets
+ envsubst < ./rds-credentials.yaml | kubectl apply -f -
+
+### verify
+$ kubectl get pods -n external-secrets
+ kubectl get clustersecretstore
+
+# check the value match AWS secret manager
+ kubectl get secret rds-credentials -o jsonpath='{.data.username}'| base64 -d
+
+

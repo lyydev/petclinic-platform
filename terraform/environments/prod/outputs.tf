@@ -107,3 +107,24 @@ output "lb_controller_role_arn" {
   description = "AWS Load Balancer Controller IAM role ARN"
   value       = module.eks.lb_controller_role_arn
 }
+
+output "eso_role_arn" {
+  description = "External Secrets Operator IAM role ARN"
+  value       = module.eks.eso_role_arn
+}
+
+output "eso_role_name" {
+  description = "External Secrets Operator IAM role name"
+  value       = module.eks.eso_role_name
+}
+
+output "openai_secret_arn" {
+  description = "Secrets Manager ARN for OpenAI API key"
+  value       = module.secrets.openai_secret_arn
+}
+
+output "openai_secret_name" {
+  description = "Secrets Manager secret name for OpenAI API key"
+  value       = module.secrets.openai_secret_name
+}
+

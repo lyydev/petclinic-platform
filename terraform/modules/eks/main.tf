@@ -221,6 +221,79 @@ resource "aws_iam_role_policy_attachment" "lb_controller_policy" {
   policy_arn = aws_iam_policy.lb_controller.arn
 }
 
+# External Secrets Operator (ESO) IRSA
+data "aws_iam_policy_document" "eso_assume_role" {
+  statement {
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+    effect  = "Allow"
+    condition {
+      test     = "StringEquals"
+      variable = "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:sub"
+      values   = ["system:serviceaccount:external-secrets:external-secrets-sa"]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:aud"
+      values   = ["sts.amazonaws.com"]
+    }
+    principals {
+      identifiers = [aws_iam_openid_connect_provider.eks.arn]
+      type        = "Federated"
+    }
+  }
+}
+
+resource "aws_iam_role" "eso" {
+  name               = "${var.project}-${var.environment}-eso-role"
+  assume_role_policy = data.aws_iam_policy_document.eso_assume_role.json
+
+  tags = merge(
+    var.tags,
+    {
+      Name        = "${var.project}-${var.environment}-eso-role"
+      Environment = var.environment
+      ManagedBy   = "terraform"
+      Project     = var.project
+    }
+  )
+}
+
+data "aws_iam_policy_document" "eso" {
+  statement {
+    sid    = "SecretsManagerRead"
+    effect = "Allow"
+    actions = [
+      "secretsmanager:GetSecretValue",
+      "secretsmanager:DescribeSecret"
+    ]
+    resources = [
+      "arn:aws:secretsmanager:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:secret:${var.project}/${var.environment}/*"
+    ]
+  }
+}
+
+resource "aws_iam_policy" "eso" {
+  name        = "${var.project}-${var.environment}-eso-policy"
+  description = "IAM policy for External Secrets Operator in ${var.project}-${var.environment}"
+  policy      = data.aws_iam_policy_document.eso.json
+
+  tags = merge(
+    var.tags,
+    {
+      Name        = "${var.project}-${var.environment}-eso-policy"
+      Environment = var.environment
+      ManagedBy   = "terraform"
+      Project     = var.project
+    }
+  )
+}
+
+resource "aws_iam_role_policy_attachment" "eso_policy" {
+  role       = aws_iam_role.eso.name
+  policy_arn = aws_iam_policy.eso.arn
+}
+
+
 # Launch template for managed node group
 resource "aws_launch_template" "node" {
   name_prefix            = "${var.project}-${var.environment}-node-lt-"
