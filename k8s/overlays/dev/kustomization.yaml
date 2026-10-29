@@ -11,28 +11,28 @@ resources:
 images:
   - name: 037547369073.dkr.ecr.us-east-1.amazonaws.com/petclinic/config-server
     newName: 037547369073.dkr.ecr.us-east-1.amazonaws.com/petclinic-dev/config-server
-    newTag: 635f8be
+    newTag: v1.0.0
   - name: 037547369073.dkr.ecr.us-east-1.amazonaws.com/petclinic/discovery-server
     newName: 037547369073.dkr.ecr.us-east-1.amazonaws.com/petclinic-dev/discovery-server
-    newTag: 635f8be
+    newTag: v1.0.0
   - name: 037547369073.dkr.ecr.us-east-1.amazonaws.com/petclinic/customers-service
     newName: 037547369073.dkr.ecr.us-east-1.amazonaws.com/petclinic-dev/customers-service
-    newTag: 635f8be
+    newTag: v1.0.0
   - name: 037547369073.dkr.ecr.us-east-1.amazonaws.com/petclinic/visits-service
     newName: 037547369073.dkr.ecr.us-east-1.amazonaws.com/petclinic-dev/visits-service
-    newTag: 635f8be
+    newTag: v1.0.0
   - name: 037547369073.dkr.ecr.us-east-1.amazonaws.com/petclinic/vets-service
     newName: 037547369073.dkr.ecr.us-east-1.amazonaws.com/petclinic-dev/vets-service
-    newTag: 635f8be
+    newTag: v1.0.0
   - name: 037547369073.dkr.ecr.us-east-1.amazonaws.com/petclinic/genai-service
     newName: 037547369073.dkr.ecr.us-east-1.amazonaws.com/petclinic-dev/genai-service
-    newTag: 635f8be
+    newTag: v1.0.0
   - name: 037547369073.dkr.ecr.us-east-1.amazonaws.com/petclinic/api-gateway
     newName: 037547369073.dkr.ecr.us-east-1.amazonaws.com/petclinic-dev/api-gateway
-    newTag: 635f8be
+    newTag: v1.0.0
   - name: 037547369073.dkr.ecr.us-east-1.amazonaws.com/petclinic/admin-server
     newName: 037547369073.dkr.ecr.us-east-1.amazonaws.com/petclinic-dev/admin-server
-    newTag: 635f8be
+    newTag: v1.0.0
 
 patches:
   - path: replicas-patch.yaml

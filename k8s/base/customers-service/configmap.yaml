@@ -10,4 +10,4 @@ metadata:
 data:
   CONFIG_SERVER_URL: "http://config-server:8888"
   DISCOVERY_SERVER_URL: "http://discovery-server:8761/eureka"
-  SPRING_DATASOURCE_URL: "jdbc:mysql://petclinic-mysql.rds.us-east-1.amazonaws.com:3306/petclinic"
+  SPRING_DATASOURCE_URL: "jdbc:mysql://petclinic-dev-mysql.cwvqe2yc62yf.us-east-1.rds.amazonaws.com:3306/petclinic"

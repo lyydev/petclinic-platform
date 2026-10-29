@@ -31,7 +31,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: config-server
-          image: 037547369073.dkr.ecr.us-east-1.amazonaws.com/petclinic/config-server:635f8be
+          image: 037547369073.dkr.ecr.us-east-1.amazonaws.com/petclinic/config-server:v1.0.0
           imagePullPolicy: Always
           ports:
             - name: http
