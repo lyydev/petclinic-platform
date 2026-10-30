@@ -1,0 +1,61 @@
+# Per-service Helm values for config-server
+# Story: PETPLAT-108
+
+nameOverride: config-server
+fullnameOverride: config-server
+component: server
+
+image:
+  name: config-server
+  repository: 037547369073.dkr.ecr.us-east-1.amazonaws.com/petclinic-dev/config-server
+  tag: "v1.0.0"
+  pullPolicy: Always
+
+containerPort: 8888
+
+service:
+  type: ClusterIP
+  port: 8888
+
+springProfiles: "docker"
+
+configMap:
+  enabled: true
+  data:
+    GIT_REPO: "https://github.com/spring-petclinic/spring-petclinic-microservices-config"
+    SPRING_CLOUD_CONFIG_SERVER_GIT_URI: "https://github.com/spring-petclinic/spring-petclinic-microservices-config"
+    SPRING_CLOUD_CONFIG_SERVER_GIT_DEFAULT_LABEL: "main"
+
+env: []
+secrets: []
+
+# Config Server starts first — no initContainers
+initContainers: []
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+probes:
+  startup:
+    enabled: true
+    path: /actuator/health
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 30
+  readiness:
+    enabled: true
+    path: /actuator/health
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  liveness:
+    enabled: true
+    path: /actuator/health
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 3

@@ -1,0 +1,13 @@
+apiVersion: v2
+name: petclinic-service
+description: Generic Helm chart for deploying Spring Petclinic Microservices on Amazon EKS
+type: application
+version: 0.1.0
+appVersion: "4.0.1"
+keywords:
+  - spring-boot
+  - petclinic
+  - microservices
+  - eks
+maintainers:
+  - name: Platform Engineering Team

@@ -1,0 +1,86 @@
+# Per-service Helm values for visits-service
+# Story: PETPLAT-108
+
+nameOverride: visits-service
+fullnameOverride: visits-service
+component: service
+
+image:
+  name: visits-service
+  repository: 037547369073.dkr.ecr.us-east-1.amazonaws.com/petclinic-dev/visits-service
+  tag: "635f8be"
+  pullPolicy: Always
+
+containerPort: 8082
+
+service:
+  type: ClusterIP
+  port: 8082
+
+springProfiles: "docker,mysql"
+
+configMap:
+  enabled: true
+  data:
+    CONFIG_SERVER_URL: "http://config-server:8888"
+    DISCOVERY_SERVER_URL: "http://discovery-server:8761/eureka"
+    SPRING_DATASOURCE_URL: "{{ .Values.datasource.url }}"
+
+env: []
+
+secrets:
+  - name: SPRING_DATASOURCE_USERNAME
+    secretName: rds-credentials
+    key: username
+  - name: SPRING_DATASOURCE_PASSWORD
+    secretName: rds-credentials
+    key: password
+
+# Visits schema has FK dependency on pets table created by customers-service
+initContainers:
+  - name: wait-for-config-server
+    image: busybox:1.36
+    command:
+      - sh
+      - -c
+      - until wget -qO- http://config-server:8888/actuator/health; do sleep 5; done
+  - name: wait-for-discovery-server
+    image: busybox:1.36
+    command:
+      - sh
+      - -c
+      - until wget -qO- http://discovery-server:8761/actuator/health; do sleep 5; done
+  - name: wait-for-customers-service
+    image: busybox:1.36
+    command:
+      - sh
+      - -c
+      - until wget -qO- http://customers-service:8081/actuator/health; do sleep 5; done
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+probes:
+  startup:
+    enabled: true
+    path: /actuator/health
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 30
+  readiness:
+    enabled: true
+    path: /actuator/health/readiness
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  liveness:
+    enabled: true
+    path: /actuator/health/liveness
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 3

@@ -1,0 +1,133 @@
+{{- $svcName := include "petclinic-service.name" . -}}
+{{- $svcOverrides := index (.Values.services | default dict) $svcName | default dict -}}
+{{- $replicaCount := .Values.replicaCount -}}
+{{- if hasKey $svcOverrides "replicaCount" -}}
+{{- $replicaCount = $svcOverrides.replicaCount -}}
+{{- end -}}
+{{- $svcResources := index $svcOverrides "resources" | default dict -}}
+{{- $resources := mustMergeOverwrite (deepCopy .Values.resources) (deepCopy $svcResources) -}}
+{{- $containerPort := .Values.containerPort | default .Values.service.port -}}
+{{- $configMapName := include "petclinic-service.configMapName" . -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "petclinic-service.fullname" . }}
+  namespace: {{ include "petclinic-service.namespace" . }}
+  labels:
+    {{- include "petclinic-service.labels" . | nindent 4 }}
+spec:
+  replicas: {{ $replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "petclinic-service.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "petclinic-service.labels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "petclinic-service.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.automountServiceAccountToken }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.initContainers }}
+      initContainers:
+        {{- range .Values.initContainers }}
+        - name: {{ .name }}
+          image: {{ .image }}
+          command:
+            {{- toYaml .command | nindent 12 }}
+          securityContext:
+            {{- if .securityContext }}
+            {{- toYaml .securityContext | nindent 12 }}
+            {{- else }}
+            {{- toYaml $.Values.initContainerSecurityContext | nindent 12 }}
+            {{- end }}
+          resources:
+            {{- if .resources }}
+            {{- toYaml .resources | nindent 12 }}
+            {{- else }}
+            {{- toYaml $.Values.initContainerResources | nindent 12 }}
+            {{- end }}
+        {{- end }}
+      {{- end }}
+      containers:
+        - name: {{ $svcName }}
+          image: {{ include "petclinic-service.image" . | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ $containerPort }}
+              protocol: TCP
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: {{ .Values.springProfiles | quote }}
+            {{- if and .Values.configMap.enabled .Values.configMap.mountAsEnv (gt (len .Values.configMap.data) 0) }}
+            {{- range $key, $_ := .Values.configMap.data }}
+            - name: {{ $key }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ $configMapName }}
+                  key: {{ $key }}
+            {{- end }}
+            {{- end }}
+            {{- range .Values.env }}
+            {{- if .valueFrom }}
+            - name: {{ .name }}
+              valueFrom:
+                {{- toYaml .valueFrom | nindent 16 }}
+            {{- else }}
+            - name: {{ .name }}
+              value: {{ tpl (.value | toString) $ | quote }}
+            {{- end }}
+            {{- end }}
+            {{- range .Values.secrets }}
+            - name: {{ .name }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .secretName }}
+                  key: {{ .key }}
+            {{- end }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml $resources | nindent 12 }}
+          {{- if .Values.probes.startup.enabled }}
+          startupProbe:
+            httpGet:
+              path: {{ .Values.probes.startup.path }}
+              port: {{ .Values.probes.startup.port | default $containerPort }}
+            {{- with .Values.probes.startup.initialDelaySeconds }}
+            initialDelaySeconds: {{ . }}
+            {{- end }}
+            periodSeconds: {{ .Values.probes.startup.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.startup.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.startup.failureThreshold }}
+          {{- end }}
+          {{- if .Values.probes.readiness.enabled }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.probes.readiness.path }}
+              port: {{ .Values.probes.readiness.port | default $containerPort }}
+            {{- with .Values.probes.readiness.initialDelaySeconds }}
+            initialDelaySeconds: {{ . }}
+            {{- end }}
+            periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.readiness.failureThreshold }}
+          {{- end }}
+          {{- if .Values.probes.liveness.enabled }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.probes.liveness.path }}
+              port: {{ .Values.probes.liveness.port | default $containerPort }}
+            {{- with .Values.probes.liveness.initialDelaySeconds }}
+            initialDelaySeconds: {{ . }}
+            {{- end }}
+            periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.liveness.failureThreshold }}
+          {{- end }}

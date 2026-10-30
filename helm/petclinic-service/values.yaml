@@ -1,0 +1,139 @@
+# Default values for petclinic-service.
+# Shared defaults across all 8 Spring Petclinic microservices.
+# Override per-service in helm-values/{service}.yaml and per-environment in helm-values/{dev,prod}.yaml.
+
+nameOverride: ""
+fullnameOverride: ""
+
+environment: dev
+namespace: petclinic-dev
+component: service
+
+replicaCount: 1
+
+image:
+  registry: ""
+  name: ""
+  repository: "037547369073.dkr.ecr.us-east-1.amazonaws.com/petclinic-dev/petclinic-service"
+  tag: "635f8be"
+  pullPolicy: Always
+
+containerPort: 8080
+
+service:
+  type: ClusterIP
+  port: 8080
+
+springProfiles: "docker"
+
+# Environment-specific RDS JDBC URL interpolated into ConfigMaps for MySQL-backed services
+datasource:
+  url: "jdbc:mysql://petclinic-dev-mysql.cwvqe2yc62yf.us-east-1.rds.amazonaws.com:3306/petclinic"
+
+# Non-secret service configuration rendered into <service>-config ConfigMap
+# and injected as environment variables via configMapKeyRef
+configMap:
+  enabled: true
+  name: ""
+  mountAsEnv: true
+  data: {}
+
+# Additional environment variables (list of {name, value} or standard Kubernetes EnvVar objects)
+env: []
+
+# Secret-backed environment variables synced via External Secrets Operator
+# Format:
+#   - name: ENV_VAR_NAME
+#     secretName: k8s-secret-name
+#     key: secret-key
+secrets: []
+
+# Startup order dependency wait containers
+initContainers: []
+
+serviceAccount:
+  create: true
+  name: ""
+  automountServiceAccountToken: false
+  annotations: {}
+
+automountServiceAccountToken: false
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 1000
+  seccompProfile:
+    type: RuntimeDefault
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: false
+
+initContainerSecurityContext:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  runAsUser: 1000
+  seccompProfile:
+    type: RuntimeDefault
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+
+initContainerResources:
+  requests:
+    cpu: 10m
+    memory: 16Mi
+  limits:
+    cpu: 100m
+    memory: 64Mi
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+probes:
+  startup:
+    enabled: true
+    path: /actuator/health
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 30
+  readiness:
+    enabled: true
+    path: /actuator/health/readiness
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  liveness:
+    enabled: true
+    path: /actuator/health/liveness
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 4
+  targetCPUUtilizationPercentage: 70
+
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1
+
+# Optional per-service overrides keyed by service name (used in prod.yaml for
+# per-service replica counts, HPA targets, and PDB settings)
+services: {}

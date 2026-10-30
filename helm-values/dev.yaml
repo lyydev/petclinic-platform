@@ -1,0 +1,23 @@
+# Development environment Helm overrides
+# Story: PETPLAT-109
+# Merged after per-service values: -f helm-values/{service}.yaml -f helm-values/dev.yaml
+
+environment: dev
+namespace: petclinic-dev
+
+replicaCount: 1
+
+image:
+  registry: 037547369073.dkr.ecr.us-east-1.amazonaws.com/petclinic-dev
+  pullPolicy: Always
+
+datasource:
+  url: "jdbc:mysql://petclinic-dev-mysql.cwvqe2yc62yf.us-east-1.rds.amazonaws.com:3306/petclinic"
+
+autoscaling:
+  enabled: false
+
+podDisruptionBudget:
+  enabled: false
+
+services: {}

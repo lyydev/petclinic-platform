@@ -1,0 +1,65 @@
+# Per-service Helm values for discovery-server
+# Story: PETPLAT-108
+
+nameOverride: discovery-server
+fullnameOverride: discovery-server
+component: server
+
+image:
+  name: discovery-server
+  repository: 037547369073.dkr.ecr.us-east-1.amazonaws.com/petclinic-dev/discovery-server
+  tag: "v1.0.0"
+  pullPolicy: Always
+
+containerPort: 8761
+
+service:
+  type: ClusterIP
+  port: 8761
+
+springProfiles: "docker"
+
+configMap:
+  enabled: true
+  data:
+    CONFIG_SERVER_URL: "http://config-server:8888"
+
+env: []
+secrets: []
+
+# Discovery Server starts second — waits for Config Server
+initContainers:
+  - name: wait-for-config-server
+    image: busybox:1.36
+    command:
+      - sh
+      - -c
+      - until wget -qO- http://config-server:8888/actuator/health; do sleep 5; done
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+probes:
+  startup:
+    enabled: true
+    path: /actuator/health
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 30
+  readiness:
+    enabled: true
+    path: /actuator/health/readiness
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  liveness:
+    enabled: true
+    path: /actuator/health/liveness
+    periodSeconds: 15
+    timeoutSeconds: 5
+    failureThreshold: 3

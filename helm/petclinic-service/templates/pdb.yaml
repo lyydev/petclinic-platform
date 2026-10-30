@@ -1,0 +1,22 @@
+{{- $svcName := include "petclinic-service.name" . -}}
+{{- $svcOverrides := index (.Values.services | default dict) $svcName | default dict -}}
+{{- $svcPdb := index $svcOverrides "podDisruptionBudget" | default dict -}}
+{{- $pdb := mustMergeOverwrite (deepCopy .Values.podDisruptionBudget) (deepCopy $svcPdb) -}}
+{{- if $pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "petclinic-service.fullname" . }}
+  namespace: {{ include "petclinic-service.namespace" . }}
+  labels:
+    {{- include "petclinic-service.labels" . | nindent 4 }}
+spec:
+  {{- if hasKey $pdb "maxUnavailable" }}
+  maxUnavailable: {{ $pdb.maxUnavailable }}
+  {{- else }}
+  minAvailable: {{ $pdb.minAvailable }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "petclinic-service.selectorLabels" . | nindent 6 }}
+{{- end }}

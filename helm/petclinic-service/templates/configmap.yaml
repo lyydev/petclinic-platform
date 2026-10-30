@@ -1,0 +1,13 @@
+{{- if and .Values.configMap.enabled (gt (len .Values.configMap.data) 0) }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "petclinic-service.configMapName" . }}
+  namespace: {{ include "petclinic-service.namespace" . }}
+  labels:
+    {{- include "petclinic-service.labels" . | nindent 4 }}
+data:
+  {{- range $key, $val := .Values.configMap.data }}
+  {{ $key }}: {{ tpl ($val | toString) $ | quote }}
+  {{- end }}
+{{- end }}

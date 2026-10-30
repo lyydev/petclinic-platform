@@ -1,0 +1,7 @@
+Deployed {{ include "petclinic-service.fullname" . }} into namespace {{ include "petclinic-service.namespace" . }}.
+
+Check rollout status:
+  kubectl rollout status deployment/{{ include "petclinic-service.fullname" . }} -n {{ include "petclinic-service.namespace" . }}
+
+Port-forward to test locally:
+  kubectl port-forward svc/{{ include "petclinic-service.fullname" . }} {{ .Values.service.port }}:{{ .Values.service.port }} -n {{ include "petclinic-service.namespace" . }}
