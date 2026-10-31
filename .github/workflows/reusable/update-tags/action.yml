@@ -1,0 +1,176 @@
+# Reusable Composite Action: Update Helm Values Image Tags (GitOps)
+# Stories: PETPLAT-50, PETPLAT-53, PETPLAT-87
+#
+# Validates the commit SHA and target service allowlist, updates .image.tag in
+# helm-values/{service}.yaml via yq v4, lints rendered Helm charts across dev & prod,
+# and commits + pushes changes to main so ArgoCD syncs the target cluster.
+
+name: "Update Helm Values Image Tags"
+description: "Update image.tag in helm-values/*.yaml via yq, lint Helm charts, and push GitOps commit"
+
+inputs:
+  sha:
+    description: "7-to-40 character hexadecimal Git commit SHA (normalized to 7 chars; 'latest' prohibited)"
+    required: true
+  services-json:
+    description: "JSON-encoded services payload (array, space/comma string, 'all', or 'null' to default to all 8)"
+    required: false
+    default: "null"
+  branch:
+    description: "Target Git branch to commit and push updated Helm values"
+    required: false
+    default: "main"
+
+outputs:
+  short-sha:
+    description: "Normalized 7-character commit SHA written to helm-values"
+    value: ${{ steps.update.outputs.sha }}
+  services:
+    description: "Space-delimited list of services updated"
+    value: ${{ steps.update.outputs.services }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Verify yq v4 and helm availability
+      shell: bash
+      run: |
+        set -euo pipefail
+        if ! command -v yq >/dev/null 2>&1; then
+          echo "::error::mikefarah/yq is required on the runner to update Helm values YAML files."
+          exit 1
+        fi
+        if ! command -v helm >/dev/null 2>&1; then
+          echo "::error::helm is required on the runner to validate updated Helm values."
+          exit 1
+        fi
+        yq --version
+        helm version --short
+
+    - name: Update image.tag in helm-values via yq
+      id: update
+      shell: bash
+      env:
+        RAW_SHA: ${{ inputs.sha }}
+        RAW_SERVICES_JSON: ${{ inputs.services-json }}
+      run: |
+        set -euo pipefail
+
+        if [[ -z "${RAW_SHA}" ]]; then
+          echo "::error::Commit SHA input is required."
+          exit 1
+        fi
+
+        if [[ "${RAW_SHA,,}" == "latest" ]]; then
+          echo "::error::Tag 'latest' is prohibited by platform policy. Pass a commit SHA."
+          exit 1
+        fi
+
+        if [[ ! "${RAW_SHA}" =~ ^[0-9a-fA-F]{7,40}$ ]]; then
+          echo "::error::Invalid commit SHA '${RAW_SHA}'. Expected 7-40 hex characters."
+          exit 1
+        fi
+
+        SHORT_SHA="${RAW_SHA:0:7}"
+        SHORT_SHA="${SHORT_SHA,,}"
+
+        ALL_SERVICES=(
+          "config-server"
+          "discovery-server"
+          "api-gateway"
+          "customers-service"
+          "visits-service"
+          "vets-service"
+          "genai-service"
+          "admin-server"
+        )
+
+        PARSED_SERVICES=""
+        if [[ -n "${RAW_SERVICES_JSON}" && "${RAW_SERVICES_JSON}" != "null" ]]; then
+          PARSED_SERVICES="$(jq -r '
+            if type == "array" then join(" ")
+            elif type == "string" then gsub(","; " ")
+            else ""
+            end
+          ' <<< "${RAW_SERVICES_JSON}")"
+        fi
+
+        TARGET_SERVICES=()
+        if [[ -z "${PARSED_SERVICES// /}" || "${PARSED_SERVICES}" == "all" ]]; then
+          TARGET_SERVICES=("${ALL_SERVICES[@]}")
+        else
+          read -r -a REQUESTED <<< "${PARSED_SERVICES}"
+          for req in "${REQUESTED[@]}"; do
+            VALID=false
+            for allowed in "${ALL_SERVICES[@]}"; do
+              if [[ "${req}" == "${allowed}" ]]; then
+                VALID=true
+                break
+              fi
+            done
+            if [[ "${VALID}" != "true" ]]; then
+              echo "::error::Unknown service '${req}' in services payload."
+              exit 1
+            fi
+            TARGET_SERVICES+=("${req}")
+          done
+        fi
+
+        for service in "${TARGET_SERVICES[@]}"; do
+          VALUES_FILE="helm-values/${service}.yaml"
+          if [[ ! -f "${VALUES_FILE}" ]]; then
+            echo "::error::Missing Helm values file: ${VALUES_FILE}"
+            exit 1
+          fi
+
+          IMAGE_TAG="${SHORT_SHA}" yq -i '.image.tag = strenv(IMAGE_TAG) | .image.tag style="double"' "${VALUES_FILE}"
+
+          ACTUAL_TAG="$(yq -e '.image.tag' "${VALUES_FILE}")"
+          if [[ "${ACTUAL_TAG}" != "${SHORT_SHA}" ]]; then
+            echo "::error::Verification failed for ${VALUES_FILE}: expected '${SHORT_SHA}', got '${ACTUAL_TAG}'"
+            exit 1
+          fi
+          echo "Updated ${VALUES_FILE} -> image.tag: \"${SHORT_SHA}\""
+        done
+
+        echo "sha=${SHORT_SHA}" >> "${GITHUB_OUTPUT}"
+        echo "services=${TARGET_SERVICES[*]}" >> "${GITHUB_OUTPUT}"
+
+    - name: Validate rendered Helm templates
+      shell: bash
+      env:
+        TARGET_SERVICES: ${{ steps.update.outputs.services }}
+      run: |
+        set -euo pipefail
+        for svc in ${TARGET_SERVICES}; do
+          helm lint helm/petclinic-service/ -f "helm-values/${svc}.yaml" -f helm-values/dev.yaml
+          helm lint helm/petclinic-service/ -f "helm-values/${svc}.yaml" -f helm-values/prod.yaml
+        done
+
+    - name: Commit and push updated Helm values
+      shell: bash
+      env:
+        SHORT_SHA: ${{ steps.update.outputs.sha }}
+        SERVICE_LIST: ${{ steps.update.outputs.services }}
+        TARGET_BRANCH: ${{ inputs.branch }}
+      run: |
+        set -euo pipefail
+
+        if [[ ! "${TARGET_BRANCH}" =~ ^[a-zA-Z0-9][a-zA-Z0-9._/-]*$ ]]; then
+          echo "::error::Invalid target branch name '${TARGET_BRANCH}'."
+          exit 1
+        fi
+
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+        git add helm-values/*.yaml
+
+        if git diff --staged --quiet; then
+          echo "No changes detected — helm-values already set to ${SHORT_SHA}."
+          exit 0
+        fi
+
+        git commit -m "ci: update image tags to ${SHORT_SHA} (${SERVICE_LIST})"
+        git pull --rebase origin "${TARGET_BRANCH}"
+        git push origin "HEAD:${TARGET_BRANCH}"

@@ -94,3 +94,31 @@ variable "openai_api_key" {
   sensitive   = true
   default     = "placeholder-openai-api-key"
 }
+
+variable "github_org" {
+  description = "GitHub username or organization owning the spring-petclinic-microservices fork"
+  type        = string
+  default     = "lyydev"
+
+  validation {
+    condition     = length(trimspace(var.github_org)) > 0 && !strcontains(var.github_org, "*")
+    error_message = "github_org must be a non-empty GitHub username/org and must not contain wildcards (*)."
+  }
+}
+
+variable "github_repo" {
+  description = "Application repository name trusted via GitHub OIDC"
+  type        = string
+  default     = "spring-petclinic-microservices"
+
+  validation {
+    condition     = length(trimspace(var.github_repo)) > 0 && !strcontains(var.github_repo, "*")
+    error_message = "github_repo must be a non-empty repository name and must not contain wildcards (*)."
+  }
+}
+
+variable "create_github_oidc_provider" {
+  description = "Whether to create the account-level GitHub Actions IAM OIDC provider"
+  type        = bool
+  default     = true
+}

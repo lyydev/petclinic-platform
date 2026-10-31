@@ -128,3 +128,23 @@ output "openai_secret_name" {
   value       = module.secrets.openai_secret_name
 }
 
+output "github_oidc_provider_arn" {
+  description = "GitHub Actions IAM OIDC provider ARN"
+  value       = module.github_oidc.oidc_provider_arn
+}
+
+output "github_actions_role_arn" {
+  description = "GitHub Actions IAM role ARN for OIDC federation (AWS_ROLE_ARN secret)"
+  value       = module.github_oidc.github_actions_role_arn
+}
+
+output "github_actions_role_name" {
+  description = "GitHub Actions IAM role name"
+  value       = module.github_oidc.github_actions_role_name
+}
+
+output "github_oidc_subject_claim" {
+  description = "Exact GitHub OIDC subject claim trusted by the GitHub Actions IAM role"
+  value       = module.github_oidc.oidc_subject_claim
+}
+

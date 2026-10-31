@@ -71,3 +71,16 @@ module "secrets" {
   openai_api_key          = var.openai_api_key
   recovery_window_in_days = 7
 }
+
+module "github_oidc" {
+  source = "../../modules/github-oidc"
+
+  project              = var.project
+  environment          = var.environment
+  github_org           = var.github_org
+  github_repo          = var.github_repo
+  github_branch        = "main"
+  create_oidc_provider = var.create_github_oidc_provider
+  oidc_provider_arn    = var.github_oidc_provider_arn
+  ecr_repository_arns  = values(module.ecr.repository_arns)
+}

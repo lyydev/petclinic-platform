@@ -1,0 +1,55 @@
+# GitOps Image Tag Update Workflow
+# Stories: PETPLAT-50, PETPLAT-53, PETPLAT-87
+#
+# Triggered by the application repo (lyydev/spring-petclinic-microservices) via
+# repository_dispatch event type "app-image-built" after ARM64 images are built,
+# scanned with Trivy, and pushed to Amazon ECR.
+#
+# Architecture: CI (GitHub Actions) commits updated SHA tags to helm-values/{service}.yaml
+# via the reusable ./.github/workflows/reusable/update-tags composite action;
+# CD (ArgoCD) detects the Git commit and syncs to EKS (auto-sync in dev, manual sync in prod).
+# This workflow NEVER runs kubectl apply or helm upgrade against a cluster.
+
+name: Update Image Tags
+
+on:
+  repository_dispatch:
+    types:
+      - app-image-built
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-image-tags-main
+  cancel-in-progress: false
+
+jobs:
+  update-tags:
+    name: Update Helm Values Image Tags
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout platform repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Update Helm values via reusable GitOps action
+        uses: ./.github/workflows/reusable/update-tags
+        with:
+          sha: ${{ github.event.client_payload.sha }}
+          services-json: ${{ toJson(github.event.client_payload.services) }}
+          branch: "main"
+
+      - name: Report failure summary
+        if: failure()
+        run: |
+          {
+            echo "### Image Tag Update Failed"
+            echo "- Event: \`repository_dispatch\` (\`app-image-built\`)"
+            echo "- Run URL: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            echo "- Automatic retries are disabled by policy; inspect step logs above and re-dispatch if needed."
+          } >> "${GITHUB_STEP_SUMMARY}"

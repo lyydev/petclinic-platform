@@ -83,3 +83,15 @@ module "secrets" {
   recovery_window_in_days = 0
 }
 
+module "github_oidc" {
+  source = "../../modules/github-oidc"
+
+  project              = var.project
+  environment          = var.environment
+  github_org           = var.github_org
+  github_repo          = var.github_repo
+  github_branch        = "main"
+  create_oidc_provider = var.create_github_oidc_provider
+  ecr_repository_arns  = values(module.ecr.repository_arns)
+}
+
